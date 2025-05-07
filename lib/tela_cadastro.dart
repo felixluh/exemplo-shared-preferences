@@ -28,7 +28,7 @@ class TelaCadastro extends StatelessWidget {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _cadastrarUsuario(context),
+              onPressed: () => _cadastrarUsuario(context),
               child: Text("Cadastrar"),
             ),
           ],
@@ -37,7 +37,7 @@ class TelaCadastro extends StatelessWidget {
     );
   }
 
-  void _cadastrarUsuario(BuildContext context) async {
+  _cadastrarUsuario(BuildContext context) async {
     String _nome = _nomeController.text.trim();
     String _email = _emailController.text.trim();
     if(_nome.isEmpty || _email.isEmpty){
@@ -48,7 +48,7 @@ class TelaCadastro extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Usuário Cadastrado com Sucesso!!!")));
       _nomeController.clear();
       _emailController.clear();
-      Navigator.pushNamed(context, "/"); // navega para tela inicial
+      Navigator.pushNamed(context, "/"); // Volta para a tela de inicio
     }
   }
 }
