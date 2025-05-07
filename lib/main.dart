@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'tela_principal.dart';
+import 'tela_cadastro.dart';
 import 'tela_inicial.dart';
 
-void main(){
+void main() {
   runApp(MaterialApp(
-    title: "Exemplo Shared Preferences",
-    home: TelaInicial(),
+    initialRoute: '/',
+    routes: {
+      '/': (context) => TelaInicial(),
+      '/cadastro': (context) => TelaCadastro(),
+      '/principal': (context) => TelaPrincipal(),
+    },
     theme: ThemeData(brightness: Brightness.light),
-    darkTheme: ThemeData(brightness: Brightness.dark)
+    darkTheme: ThemeData(brightness: Brightness.dark),
   ));
 }
