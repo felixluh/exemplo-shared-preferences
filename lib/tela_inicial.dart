@@ -1,105 +1,108 @@
-//janela inical do aplicativo
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class TelaInicial extends StatefulWidget {
-  // janela com alteração de estado (setState)
+class TelaInicial extends StatefulWidget{ //Tela com Mudança de Estado
   @override
-  _TelaInicialState createState() => _TelaInicialState();
+  State<TelaInicial> createState() => _TelaInicialState();
 }
 
-//construção da Janela do Página
-class _TelaInicialState extends State<TelaInicial> {
+class _TelaInicialState extends State<TelaInicial>{ //Tela que verifica as mudanças 
   //atributos
-  TextEditingController _nomeController = TextEditingController();
-  String _nome = "";
-  bool _darkMode = false;
+  String _nome = ""; // _ indica que o atributo é privado
+  String _email = "";
+  TextEditingController _nomeController = TextEditingController(); //Controlador do Campo de Text 
+  TextEditingController _emailController = TextEditingController();
+  bool _darkMode = false; //Atributo para o modo escuro
+  bool _logado = false; //atributo para verificar se o usuário está logado
 
-  // métodos
+  //métodos
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _carregarNome();
+    _carregarPreferencias(); //carregar as preferencias do usuário - 
+    if(_logado){
+      Navigator.pushNamed(context, "/principal"); //navega para tela principal
+    }
+  }
+  
+  _carregarPreferencias() async {
+    // conectar com shared Preferences
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _nome = _prefs.getString("nome") ?? "";// carrega as informações da chave nome, caso não tenha carrega ""
+      _email = _prefs.getString("_nome") ?? "";
+      _darkMode = _prefs.getBool("darkMode") ?? false;
+      _logado = _prefs.getBool("logado") ?? false;
+    });
   }
 
-  void _salvarPreferencias() async {
-    //método vai rodar de forma assincrona
-    if (_nomeController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Preencha o Nome do Usuário")));
-    } else {
-      SharedPreferences _prefs =
-          await SharedPreferences.getInstance(); // espera estabelece a conexão para pegar a informação (await)
-      _nome = _nomeController.text;
-      //salvar no shared preference a chave / valor
-      _prefs.setString("nome", _nome);
-      setState(() {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Nome do Usuário Preenchido")));
-        _nomeController.clear();
-      });
+  _trocarTema() async{
+    SharedPreferences _prefs = await SharedPreferences.getInstance(); 
+    setState(() {
+      _darkMode = !_darkMode; //Troca o Tema
+      _prefs.setBool("darmoMode", _darkMode); //salva o tema no cache
+    });
+  }
+
+  _logar() async{
+    _nome = _nomeController.text.trim();
+    _email = _emailController.text.trim();
+    SharedPreferences _prefs = await SharedPreferences.getInstance(); //conecta com o shared
+    if(_nomeController.text.trim().isEmpty || _emailController.text.trim().isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Preencha todos os Campos!")));
+    }else if(_prefs.getString(_nome) == _email){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Realizado com Sucesso!")));
+      _prefs.setString("nome", _nome); //salva o nome no cache
+      _prefs.setBool("logado", true); //salva o login no cache
+      _nomeController.clear();
+      _emailController.clear();
+      Navigator.pushNamed(context, "/principal"); //navega para a tela principal      
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login ou Email Inválido!")));
     }
   }
 
-  void _mudarTema() async {
-    _darkMode = !_darkMode; //inverte o valor da boolean
-    SharedPreferences _prefs = await SharedPreferences.getInstance();
-    _prefs.setBool("darkMode", _darkMode);
-    setState(() {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_darkMode ? "Modo Escuro" : "Modo Claro")),
-      );
-    });
-  }
-
-  void _carregarNome() async {
-    SharedPreferences _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _nome =
-          _prefs.getString("nome") ??
-          ""; //carrega a informação do da chave "nome" , caso nulo carrega ""
-      _darkMode = _prefs.getBool("darkMode") ?? false;
-    });
-  }
-
   @override
-  Widget build(BuildContext context) {
-    //construtor de Janela
+  Widget build(BuildContext context){
     return AnimatedTheme(
-      data: _darkMode ? ThemeData.dark() : ThemeData.light(),
+      data:  _darkMode ? ThemeData.dark() : ThemeData.light(), //troca a cor do tema
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "Bem-Vindo ${_nome == "" ? "Visitante" : _nome}",
-          ), //operador Ternário
+          title: Text("Bem-vindo ${_nome =="" ? "Visitante" : _nome}"), // se nome vazio escreve Visitante
           actions: [
             IconButton(
-              onPressed: _mudarTema,
-              icon: Icon(_darkMode ? Icons.light_mode : Icons.dark_mode),
-            ),
+              onPressed: _trocarTema, //trocar tema
+              icon: Icon(_darkMode ? Icons.light_mode : Icons.dark_mode))
           ],
         ),
-
         body: Padding(
           padding: EdgeInsets.all(16),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text("Fazer Login", style: TextStyle(fontSize: 20),),
               TextField(
                 controller: _nomeController,
-                decoration: InputDecoration(labelText: "Nome do Usuário"),
+                decoration: InputDecoration(labelText: "Nome"),
               ),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: "Email"),
+              ),
+              SizedBox(height: 20,),
               ElevatedButton(
-                onPressed: _salvarPreferencias,
-                child: Text("Salvar Usuário"),
+                onPressed: () => _logar,
+                child: Text("Logar"),
               ),
+              SizedBox(height: 20,),
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, "/cadastro"),
+                child: Text("Cadastrar"))
             ],
-          ),
-        ),
+            ),
+         )
       ),
     );
   }
